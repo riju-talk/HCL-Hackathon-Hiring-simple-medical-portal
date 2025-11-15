@@ -116,7 +116,6 @@ router.post('/appointments', authMiddleware, authorizeRoles('patient'), async (r
             duration: 30
         };
 
-        // Use transaction-based booking to prevent race conditions
         const appointment = await Appointment.bookWithLock(appointmentData);
 
         res.status(201).json({
@@ -135,9 +134,7 @@ router.post('/appointments', authMiddleware, authorizeRoles('patient'), async (r
     }
 });
 
-/**
- * PUT /api/patients/profile - Update patient profile
- */
+
 router.put('/profile', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const { fullName, email, phoneNumber, address, dateOfBirth } = req.body;
@@ -224,9 +221,7 @@ router.delete('/appointments/:appointmentId', authMiddleware, authorizeRoles('pa
     }
 });
 
-/**
- * POST /api/patients/goals - Create a new goal
- */
+
 router.post('/goals', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const { title, description, targetDate, category, targetValue, unit, frequency, reminderTime, notes } = req.body;
@@ -257,9 +252,7 @@ router.post('/goals', authMiddleware, authorizeRoles('patient'), async (req, res
     }
 });
 
-/**
- * GET /api/patients/goals/all - Get all goals for current patient
- */
+
 router.get('/goals/all', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const goals = await PatientGoal.find({ patientId: req.user.userId })
@@ -272,9 +265,7 @@ router.get('/goals/all', authMiddleware, authorizeRoles('patient'), async (req, 
     }
 });
 
-/**
- * GET /api/patients/goals/today - Get today's goals for current patient
- */
+
 router.get('/goals/today', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const goals = await PatientGoal.getTodaysGoals(req.user.userId);
@@ -286,9 +277,6 @@ router.get('/goals/today', authMiddleware, authorizeRoles('patient'), async (req
     }
 });
 
-/**
- * PUT /api/patients/goals/:goalId - Update a goal
- */
 router.put('/goals/:goalId', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const goal = await PatientGoal.findById(req.params.goalId);
@@ -326,9 +314,7 @@ router.put('/goals/:goalId', authMiddleware, authorizeRoles('patient'), async (r
     }
 });
 
-/**
- * PUT /api/patients/goals/:goalId/complete - Mark goal as completed
- */
+
 router.put('/goals/:goalId/complete', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const goal = await PatientGoal.findById(req.params.goalId);
@@ -350,9 +336,6 @@ router.put('/goals/:goalId/complete', authMiddleware, authorizeRoles('patient'),
     }
 });
 
-/**
- * DELETE /api/patients/goals/:goalId - Delete a goal
- */
 router.delete('/goals/:goalId', authMiddleware, authorizeRoles('patient'), async (req, res) => {
     try {
         const goal = await PatientGoal.findById(req.params.goalId);

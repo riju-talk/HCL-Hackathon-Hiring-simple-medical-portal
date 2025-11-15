@@ -36,10 +36,7 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-/**
- * Middleware to check if user has specific role
- * @param {string[]} roles - Array of allowed roles
- */
+
 const authorizeRoles = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {

@@ -7,11 +7,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is already authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First check if API is available
+    
         const healthResponse = await checkHealth();
         if (!healthResponse.success) {
           console.error('API is not available');
@@ -19,7 +18,7 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // If API is available, check if user is authenticated
+  
         try {
           const response = await getCurrentUser();
           if (response.success && response.user) {
@@ -31,7 +30,7 @@ export const AuthProvider = ({ children }) => {
             });
           }
         } catch (authError) {
-          // 401 is expected when not logged in, silently ignore
+         
         }
       } catch (error) {
         // API not available, silently ignore

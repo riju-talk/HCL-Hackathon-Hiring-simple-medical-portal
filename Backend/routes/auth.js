@@ -5,9 +5,7 @@ const PatientProfile = require('../models/PatientProfile.model');
 const { generateToken } = require('../middleware/jwt.utils');
 const { authMiddleware } = require('../middleware/auth.middleware');
 
-/**
- * POST /auth/register
- */
+
 router.post('/register', async (req, res) => {
     try {
         const { fullName, email, password, role, specialization, licenseNumber, phoneNumber } = req.body;
@@ -82,9 +80,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
-/**
- * POST /auth/login
- */
+
 router.post('/login', async (req, res) => {
     try {
         const { email, password, role } = req.body;
@@ -174,9 +170,7 @@ router.post('/logout', (req, res) => {
     res.status(200).json({ success: true, message: 'Logout successful' });
 });
 
-/**
- * GET /auth/me
- */
+
 router.get('/me', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).select('-password');

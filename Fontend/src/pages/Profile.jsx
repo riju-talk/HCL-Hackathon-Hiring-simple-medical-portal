@@ -147,7 +147,7 @@ const Profile = () => {
     const startMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
     const totalMinutes = endMinutes - startMinutes;
-    return Math.floor(totalMinutes / 30); // 30-minute slots
+    return Math.floor(totalMinutes / 30); 
   };
 
   const handleSaveAvailability = async () => {
