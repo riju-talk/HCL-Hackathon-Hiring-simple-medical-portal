@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { User, Mail, Phone, MapPin, FileText, Loader2, Clock, Calendar, Trash2, Plus, CheckCircle } from "lucide-react";
-import { updatePatientProfile, updateDoctorProfile, getPatientProfile, getDoctorAvailability, getMyDoctorAvailability, setDoctorAvailability } from "@/lib/api";
+import { updatePatientProfile, updateDoctorProfile, getPatientProfile, getDoctorById, getDoctorAvailability, getMyDoctorAvailability, setDoctorAvailability } from "@/lib/api";
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -63,9 +63,14 @@ const Profile = () => {
             }
           }
         } else if (user.role === "doctor") {
-          setPhoneNumber(user.phoneNumber || "");
-          setAddress(user.address || "");
-          setSpecialization(user.specialization || "");
+          // Fetch doctor profile from backend
+          const doctorResponse = await getDoctorById(user.id);
+          if (doctorResponse.success && doctorResponse.doctor) {
+            const doctorData = doctorResponse.doctor;
+            setPhoneNumber(doctorData.phoneNumber || "");
+            setAddress(doctorData.address || "");
+            setSpecialization(doctorData.specialization || "");
+          }
           
           // Fetch doctor availability
           try {

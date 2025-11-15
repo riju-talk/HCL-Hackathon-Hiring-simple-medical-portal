@@ -168,7 +168,7 @@ const PatientDashboard = () => {
     try {
       const response = await completePatientGoal(goalId);
       if (response.success) {
-        toast.success('Goal completed! 🎉');
+        toast.success('Goal completed!');
         fetchData();
       } else {
         toast.error(response.message || 'Failed to complete goal');
@@ -181,13 +181,13 @@ const PatientDashboard = () => {
 
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'medication': return '💊';
-      case 'exercise': return '🏃';
-      case 'nutrition': return '🥗';
-      case 'hydration': return '💧';
-      case 'sleep': return '😴';
-      case 'appointment': return '📅';
-      default: return '✓';
+      case 'medication': return 'Rx';
+      case 'exercise': return 'Ex';
+      case 'nutrition': return 'Nu';
+      case 'hydration': return 'Hy';
+      case 'sleep': return 'Sl';
+      case 'appointment': return 'Ap';
+      default: return '';
     }
   };
 
@@ -353,13 +353,13 @@ const PatientDashboard = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="medication">💊 Medication</SelectItem>
-                        <SelectItem value="exercise">🏃 Exercise</SelectItem>
-                        <SelectItem value="nutrition">🥗 Nutrition</SelectItem>
-                        <SelectItem value="hydration">💧 Hydration</SelectItem>
-                        <SelectItem value="sleep">😴 Sleep</SelectItem>
-                        <SelectItem value="appointment">📅 Appointment</SelectItem>
-                        <SelectItem value="other">✓ Other</SelectItem>
+                        <SelectItem value="medication">Medication</SelectItem>
+                        <SelectItem value="exercise">Exercise</SelectItem>
+                        <SelectItem value="nutrition">Nutrition</SelectItem>
+                        <SelectItem value="hydration">Hydration</SelectItem>
+                        <SelectItem value="sleep">Sleep</SelectItem>
+                        <SelectItem value="appointment">Appointment</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -447,7 +447,7 @@ const PatientDashboard = () => {
                         </Button>
                       ) : (
                         <Badge variant="default" className="bg-green-600">
-                          ✓ Completed
+                          Completed
                         </Badge>
                       )}
                     </div>

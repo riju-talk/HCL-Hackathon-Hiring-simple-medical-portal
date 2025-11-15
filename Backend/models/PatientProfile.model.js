@@ -19,14 +19,12 @@ const patientProfileSchema = new mongoose.Schema({
         trim: true
     }],
     currentMedications: [{
-        name: String,
-        dosage: String,
-        frequency: String
+        type: String,
+        trim: true
     }],
     medicalHistory: [{
-        condition: String,
-        diagnosedDate: Date,
-        notes: String
+        type: String,
+        trim: true
     }],
     emergencyContact: {
         name: String,

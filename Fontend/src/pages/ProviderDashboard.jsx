@@ -45,9 +45,7 @@ const ProviderDashboard = () => {
   const [newGoal, setNewGoal] = useState({
     title: '',
     description: '',
-    category: 'patients',
-    targetValue: '',
-    unit: 'count'
+    category: 'patients'
   });
   const [stats, setStats] = useState({
     total: 0,
@@ -178,8 +176,7 @@ const ProviderDashboard = () => {
       
       const response = await createGoal({
         ...newGoal,
-        targetDate: today.toISOString(),
-        targetValue: newGoal.targetValue ? Number(newGoal.targetValue) : undefined
+        targetDate: today.toISOString()
       });
 
       if (response.success) {
@@ -188,9 +185,7 @@ const ProviderDashboard = () => {
         setNewGoal({
           title: '',
           description: '',
-          category: 'patients',
-          targetValue: '',
-          unit: 'count'
+          category: 'patients'
         });
         fetchData();
       }
@@ -322,16 +317,6 @@ const ProviderDashboard = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="targetValue">Target Value</Label>
-                    <Input
-                      id="targetValue"
-                      type="number"
-                      placeholder="e.g., 10"
-                      value={newGoal.targetValue}
-                      onChange={(e) => setNewGoal({...newGoal, targetValue: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
@@ -362,11 +347,6 @@ const ProviderDashboard = () => {
                       {goal.description && (
                         <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
                       )}
-                      {goal.targetValue && (
-                        <p className="text-sm mt-1">
-                          Progress: {goal.currentValue} / {goal.targetValue} {goal.unit}
-                        </p>
-                      )}
                     </div>
                     {!goal.isCompleted && (
                       <Button 
@@ -378,7 +358,7 @@ const ProviderDashboard = () => {
                       </Button>
                     )}
                     {goal.isCompleted && (
-                      <Badge variant="default">Completed ✓</Badge>
+                      <Badge variant="default">Completed</Badge>
                     )}
                   </div>
                 ))}

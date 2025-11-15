@@ -87,7 +87,7 @@ router.post('/register', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ success: false, message: 'Email and password are required' });
@@ -104,6 +104,29 @@ router.post('/login', async (req, res) => {
         const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
+        }
+
+        // Role validation: 
+        // - Patients cannot login as doctors
+        // - Doctors cannot login as patients (must register separately)
+        if (role) {
+            const requestedRole = role === 'provider' ? 'doctor' : role;
+            
+            // If user is a patient trying to login as doctor, deny access
+            if (user.role === 'patient' && requestedRole === 'doctor') {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'Access denied. You do not have provider privileges.' 
+                });
+            }
+            
+            // If user is a doctor trying to login as patient, deny access
+            if (user.role === 'doctor' && requestedRole === 'patient') {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'You are registered as a healthcare provider. Please register as a patient first to access patient features.' 
+                });
+            }
         }
 
         const token = generateToken({

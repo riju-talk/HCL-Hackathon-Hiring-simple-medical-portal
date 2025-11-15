@@ -28,7 +28,9 @@ const Auth = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const userData = await login(loginEmail, loginPassword);
+      // Map provider to doctor for backend
+      const backendRole = loginRole === "provider" ? "doctor" : "patient";
+      const userData = await login(loginEmail, loginPassword, backendRole);
       toast.success("Login successful!");
       // Navigate based on actual user role from backend
       navigate(userData.role === "doctor" ? "/provider-dashboard" : "/patient-dashboard");

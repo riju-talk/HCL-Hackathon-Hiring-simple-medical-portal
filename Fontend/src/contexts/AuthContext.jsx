@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role) => {
     try {
-      const response = await apiLogin({ email, password });
+      const response = await apiLogin({ email, password, role });
       
       if (response.success && response.user) {
         const userData = {
