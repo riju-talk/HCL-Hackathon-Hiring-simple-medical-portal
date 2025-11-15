@@ -1,9 +1,3 @@
-Here is a clean, professional, **submission-ready README section**, rewritten so it matches your hackathon requirements *exactly* — minimal, slick, and aligned with the features shown in your documents.
-No fluff. No contradictions. No implementation promises you can’t keep.
-Just a tight, judge-friendly explanation of the MVP.
-
----
-
 # **HCL Hackathon – Simple Medical Portal**
 
 ## **Problem Statement**
@@ -108,7 +102,3 @@ These pages demonstrate all essential user journeys required by the problem stat
 ## **Summary**
 
 This MVP presents a clear, secure, role-aware design for a simple medical wellness and preventive-care portal. It balances functional clarity with healthcare-focused considerations, delivering a lightweight but complete demonstration of authentication, personalization, and user-centric health insights.
-
----
-
-If you want, I can now attach **Mermaid diagrams**, **architecture diagrams**, or a **final submission-ready README** combining all sections (problem, requirements, diagrams, and flows) in one cohesive document.
