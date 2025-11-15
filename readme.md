@@ -84,16 +84,16 @@ Judges should be able to quickly understand the full system flow, login process,
    Account creation (Patient or Provider) with consent confirmation.
 
 3. **Patient Dashboard**
-   Wellness tracking, reminders, and personalized insights.
+    Wellness tracking, reminders, and personalized insights.
 
 4. **Provider Dashboard**
-   Compliance overview and patient-centric information summaries.
+    Compliance overview and patient-centric information summaries.
 
 5. **Profile Page**
-   Editable profile with basic health and personal details.
+    Editable profile with basic health and personal details.
 
 6. **Public Health Information**
-    Editable profile with basic health and personal details.
+    Make a hardcoded 
 
 These pages demonstrate all essential user journeys required by the problem statement.
 
