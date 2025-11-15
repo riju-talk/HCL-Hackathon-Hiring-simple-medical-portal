@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { login as apiLogin, register as apiRegister, logout as apiLogout, getCurrentUser } from "@/lib/api";
+import { login as apiLogin, register as apiRegister, logout as apiLogout, getCurrentUser, checkHealth } from "@/lib/api";
 
 const AuthContext = createContext(undefined);
 
@@ -11,17 +11,30 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await getCurrentUser();
-        if (response.success && response.user) {
-          setUser({
-            id: response.user.userId,
-            email: response.user.email,
-            role: response.user.role,
-            name: response.user.fullName
-          });
+        // First check if API is available
+        const healthResponse = await checkHealth();
+        if (!healthResponse.success) {
+          console.error('API is not available');
+          setLoading(false);
+          return;
+        }
+
+        // If API is available, check if user is authenticated
+        try {
+          const response = await getCurrentUser();
+          if (response.success && response.user) {
+            setUser({
+              id: response.user.userId,
+              email: response.user.email,
+              role: response.user.role,
+              name: response.user.fullName
+            });
+          }
+        } catch (authError) {
+          // 401 is expected when not logged in, silently ignore
         }
       } catch (error) {
-        console.log('Not authenticated');
+        // API not available, silently ignore
       } finally {
         setLoading(false);
       }

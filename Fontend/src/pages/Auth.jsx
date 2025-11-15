@@ -28,11 +28,13 @@ const Auth = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await login(loginEmail, loginPassword, loginRole);
+      const userData = await login(loginEmail, loginPassword);
       toast.success("Login successful!");
-      navigate(loginRole === "provider" ? "/provider-dashboard" : "/patient-dashboard");
+      // Navigate based on actual user role from backend
+      navigate(userData.role === "doctor" ? "/provider-dashboard" : "/patient-dashboard");
     } catch (error) {
-      toast.error("Login failed. Please try again.");
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.message || "Login failed. Please check your credentials.");
     }
   };
 
@@ -43,11 +45,15 @@ const Auth = () => {
       return;
     }
     try {
-      await register(registerEmail, registerPassword, registerName, registerRole);
+      // Map "provider" to "doctor" for backend
+      const backendRole = registerRole === "provider" ? "doctor" : "patient";
+      const userData = await register(registerEmail, registerPassword, registerName, backendRole);
       toast.success("Registration successful!");
-      navigate(registerRole === "provider" ? "/provider-dashboard" : "/patient-dashboard");
+      // Navigate based on actual user role from backend
+      navigate(userData.role === "doctor" ? "/provider-dashboard" : "/patient-dashboard");
     } catch (error) {
-      toast.error("Registration failed. Please try again.");
+      console.error("Registration error:", error);
+      toast.error(error.response?.data?.message || "Registration failed. Please try again.");
     }
   };
 

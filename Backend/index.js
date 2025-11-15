@@ -23,7 +23,7 @@ app.use(cors({
     ].filter(Boolean),
     credentials: true, // Allow cookies to be sent
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Shared-Secret']
 })); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

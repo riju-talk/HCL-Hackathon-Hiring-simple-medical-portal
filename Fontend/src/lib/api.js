@@ -5,7 +5,8 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
     withCredentials: true, // Important for sending cookies
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Shared-Secret': import.meta.env.VITE_SHARED_SECRET || ''
     }
 });
 
@@ -13,10 +14,8 @@ const api = axios.create({
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            // Unauthorized - could redirect to login
-            console.error('Unauthorized access');
-        }
+        // Silently handle 401 errors (expected when not logged in)
+        // Other errors will be caught by individual API calls
         return Promise.reject(error);
     }
 );
