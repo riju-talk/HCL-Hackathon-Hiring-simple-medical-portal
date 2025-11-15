@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, Mail, Phone, MapPin, FileText, Loader2 } from "lucide-react";
-import { updatePatientProfile, updateDoctorProfile, getPatientProfile } from "@/lib/api";
+import { User, Mail, Phone, MapPin, FileText, Loader2, Clock, Calendar, Trash2, Plus, CheckCircle } from "lucide-react";
+import { updatePatientProfile, updateDoctorProfile, getPatientProfile, getDoctorAvailability, getMyDoctorAvailability, setDoctorAvailability } from "@/lib/api";
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -30,6 +30,9 @@ const Profile = () => {
   
   // Doctor Information
   const [specialization, setSpecialization] = useState("");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00");
+  const [hasAvailability, setHasAvailability] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -58,6 +61,24 @@ const Profile = () => {
               setCurrentMedications(profileData.currentMedications?.join(", ") || "");
               setMedicalHistory(profileData.medicalHistory?.join(", ") || "");
             }
+          }
+        } else if (user.role === "doctor") {
+          setPhoneNumber(user.phoneNumber || "");
+          setAddress(user.address || "");
+          setSpecialization(user.specialization || "");
+          
+          // Fetch doctor availability
+          try {
+            const availResponse = await getMyDoctorAvailability();
+            if (availResponse.success && availResponse.availability && availResponse.availability.slots && availResponse.availability.slots.length > 0) {
+              const firstSlot = availResponse.availability.slots[0];
+              setStartTime(firstSlot.startTime || "09:00");
+              setEndTime(firstSlot.endTime || "17:00");
+              setHasAvailability(true);
+            }
+          } catch (err) {
+            console.error('Error fetching availability:', err);
+            // Continue without availability
           }
         }
       } catch (error) {
@@ -109,6 +130,58 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const calculateAppointmentsPerDay = (start, end) => {
+    if (!start || !end) return 0;
+    const [startHour, startMin] = start.split(':').map(Number);
+    const [endHour, endMin] = end.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    const totalMinutes = endMinutes - startMinutes;
+    return Math.floor(totalMinutes / 30); // 30-minute slots
+  };
+
+  const handleSaveAvailability = async () => {
+    if (!startTime || !endTime) {
+      toast.error('Please set start and end time');
+      return;
+    }
+
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    
+    if (startHour * 60 + startMin >= endHour * 60 + endMin) {
+      toast.error('End time must be after start time');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      
+      // Create slots for all 7 days with the same time
+      const slots = [
+        'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
+      ].map(day => ({
+        dayOfWeek: day,
+        startTime: startTime,
+        endTime: endTime,
+        isActive: true
+      }));
+
+      const response = await setDoctorAvailability(slots);
+      if (response.success) {
+        setHasAvailability(true);
+        toast.success('Availability updated successfully!');
+      } else {
+        toast.error(response.message || 'Failed to update availability');
+      }
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      toast.error('Failed to save availability');
     } finally {
       setSaving(false);
     }
@@ -275,6 +348,86 @@ const Profile = () => {
                   />
                   <p className="text-xs text-muted-foreground">Separate multiple items with commas</p>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Availability Settings - Only for Doctors */}
+          {user?.role === "doctor" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Working Hours
+                </CardTitle>
+                <CardDescription>
+                  Set your daily working hours (same for all days). Each appointment is 30 minutes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="workStartTime">Start Time</Label>
+                    <Input
+                      id="workStartTime"
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="text-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workEndTime">End Time</Label>
+                    <Input
+                      id="workEndTime"
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className="text-lg"
+                    />
+                  </div>
+                </div>
+
+                {startTime && endTime && calculateAppointmentsPerDay(startTime, endTime) > 0 && (
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-semibold">Appointments per day: {calculateAppointmentsPerDay(startTime, endTime)}</p>
+                        <p className="text-muted-foreground text-xs mt-1">
+                          Working hours: {startTime} - {endTime} (30-minute slots)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {hasAvailability && (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Availability is configured. Update times above and save to change.</span>
+                  </div>
+                )}
+
+                <Button
+                  type="button"
+                  onClick={handleSaveAvailability}
+                  variant="default"
+                  className="w-full"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      {hasAvailability ? 'Update Working Hours' : 'Set Working Hours'}
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           )}

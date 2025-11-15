@@ -105,6 +105,22 @@ export const getDoctorPatients = async (doctorId) => {
 };
 
 /**
+ * Get current doctor's appointments (from JWT)
+ */
+export const getMyDoctorAppointments = async () => {
+    const response = await api.get('/api/doctors/appointments/me');
+    return response.data;
+};
+
+/**
+ * Get current doctor's patients (from JWT)
+ */
+export const getMyDoctorPatients = async () => {
+    const response = await api.get('/api/doctors/patients/me');
+    return response.data;
+};
+
+/**
  * Update appointment status (doctor only)
  */
 export const updateAppointmentStatus = async (appointmentId, data) => {
@@ -117,6 +133,88 @@ export const updateAppointmentStatus = async (appointmentId, data) => {
  */
 export const updateDoctorProfile = async (profileData) => {
     const response = await api.put('/api/doctors/profile', profileData);
+    return response.data;
+};
+
+/**
+ * Get doctor availability
+ */
+export const getDoctorAvailability = async (doctorId) => {
+    const response = await api.get(`/api/doctors/${doctorId}/availability`);
+    return response.data;
+};
+
+/**
+ * Get current doctor's availability (from JWT)
+ */
+export const getMyDoctorAvailability = async () => {
+    const response = await api.get('/api/doctors/availability/me');
+    return response.data;
+};
+
+/**
+ * Set doctor availability (doctor only)
+ */
+export const setDoctorAvailability = async (slots) => {
+    const response = await api.post('/api/doctors/availability', { slots });
+    return response.data;
+};
+
+/**
+ * Get available time slots for a doctor on a specific date
+ */
+export const getAvailableSlots = async (doctorId, date) => {
+    const response = await api.get(`/api/doctors/${doctorId}/available-slots`, {
+        params: { date }
+    });
+    return response.data;
+};
+
+/**
+ * Create a new goal (doctor only)
+ */
+export const createGoal = async (goalData) => {
+    const response = await api.post('/api/doctors/goals', goalData);
+    return response.data;
+};
+
+/**
+ * Get all goals (doctor only)
+ */
+export const getAllGoals = async () => {
+    const response = await api.get('/api/doctors/goals/all');
+    return response.data;
+};
+
+/**
+ * Get today's goals (doctor only)
+ */
+export const getTodaysGoals = async () => {
+    const response = await api.get('/api/doctors/goals/today');
+    return response.data;
+};
+
+/**
+ * Update a goal (doctor only)
+ */
+export const updateGoal = async (goalId, goalData) => {
+    const response = await api.put(`/api/doctors/goals/${goalId}`, goalData);
+    return response.data;
+};
+
+/**
+ * Mark goal as completed (doctor only)
+ */
+export const completeGoal = async (goalId) => {
+    const response = await api.put(`/api/doctors/goals/${goalId}/complete`);
+    return response.data;
+};
+
+/**
+ * Delete a goal (doctor only)
+ */
+export const deleteGoal = async (goalId) => {
+    const response = await api.delete(`/api/doctors/goals/${goalId}`);
     return response.data;
 };
 
@@ -149,6 +247,14 @@ export const getPatientAppointments = async (patientId) => {
 };
 
 /**
+ * Get current patient's appointments (from JWT)
+ */
+export const getMyAppointments = async () => {
+    const response = await api.get('/api/patients/appointments/me');
+    return response.data;
+};
+
+/**
  * Book a new appointment (patient only)
  */
 export const bookAppointment = async (appointmentData) => {
@@ -177,6 +283,58 @@ export const cancelAppointment = async (appointmentId) => {
  */
 export const getPatientProfile = async (patientId) => {
     const response = await api.get(`/api/patients/${patientId}`);
+    return response.data;
+};
+
+// ============================================
+// Patient Goals APIs
+// ============================================
+
+/**
+ * Create a new patient goal
+ */
+export const createPatientGoal = async (goalData) => {
+    const response = await api.post('/api/patients/goals', goalData);
+    return response.data;
+};
+
+/**
+ * Get all patient goals
+ */
+export const getAllPatientGoals = async () => {
+    const response = await api.get('/api/patients/goals/all');
+    return response.data;
+};
+
+/**
+ * Get today's patient goals
+ */
+export const getTodaysPatientGoals = async () => {
+    const response = await api.get('/api/patients/goals/today');
+    return response.data;
+};
+
+/**
+ * Update a patient goal
+ */
+export const updatePatientGoal = async (goalId, goalData) => {
+    const response = await api.put(`/api/patients/goals/${goalId}`, goalData);
+    return response.data;
+};
+
+/**
+ * Mark patient goal as completed
+ */
+export const completePatientGoal = async (goalId) => {
+    const response = await api.put(`/api/patients/goals/${goalId}/complete`);
+    return response.data;
+};
+
+/**
+ * Delete a patient goal
+ */
+export const deletePatientGoal = async (goalId) => {
+    const response = await api.delete(`/api/patients/goals/${goalId}`);
     return response.data;
 };
 

@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User.model');
 const Appointment = require('../models/Appointment.model');
 const PatientProfile = require('../models/PatientProfile.model');
+const PatientGoal = require('../models/PatientGoal.model');
 const { authMiddleware, authorizeRoles } = require('../middleware/auth.middleware');
 
 /**
@@ -63,6 +64,22 @@ router.get('/:id/appointments', authMiddleware, authorizeRoles('patient'), async
 });
 
 /**
+ * GET /api/patients/appointments/me - Get current patient's appointments (from JWT)
+ */
+router.get('/appointments/me', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const appointments = await Appointment.find({ patientId: req.user.userId })
+            .populate('doctorId', 'fullName email specialization phoneNumber')
+            .sort({ appointmentDateTime: -1 });
+
+        res.status(200).json({ success: true, count: appointments.length, appointments });
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        res.status(500).json({ success: false, message: 'Error fetching appointments' });
+    }
+});
+
+/**
  * POST /api/patients/appointments - Book new appointment with race condition protection
  */
 router.post('/appointments', authMiddleware, authorizeRoles('patient'), async (req, res) => {
@@ -82,13 +99,21 @@ router.post('/appointments', authMiddleware, authorizeRoles('patient'), async (r
             return res.status(404).json({ success: false, message: 'Doctor not found or inactive' });
         }
 
+        // Compute appointmentDateTime for conflict checking
+        const dateStr = new Date(appointmentDate).toISOString().split('T')[0];
+        const [hours, minutes] = appointmentTime.split(':').map(Number);
+        const appointmentDateTime = new Date(appointmentDate);
+        appointmentDateTime.setHours(hours, minutes, 0, 0);
+
         const appointmentData = {
             patientId: req.user.userId,
             doctorId,
             appointmentDate,
             appointmentTime,
-            reasonForVisit,
-            status: 'pending'
+            appointmentDateTime,
+            reason: reasonForVisit,
+            status: 'pending',
+            duration: 30
         };
 
         // Use transaction-based booking to prevent race conditions
@@ -196,6 +221,156 @@ router.delete('/appointments/:appointmentId', authMiddleware, authorizeRoles('pa
     } catch (error) {
         console.error('Error cancelling appointment:', error);
         res.status(500).json({ success: false, message: 'Error cancelling appointment' });
+    }
+});
+
+/**
+ * POST /api/patients/goals - Create a new goal
+ */
+router.post('/goals', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const { title, description, targetDate, category, targetValue, unit, frequency, reminderTime, notes } = req.body;
+
+        if (!title || !targetDate) {
+            return res.status(400).json({ success: false, message: 'Title and target date are required' });
+        }
+
+        const goal = new PatientGoal({
+            patientId: req.user.userId,
+            title,
+            description,
+            targetDate,
+            category: category || 'other',
+            targetValue,
+            unit: unit || 'count',
+            frequency: frequency || 'once',
+            reminderTime,
+            notes
+        });
+
+        await goal.save();
+
+        res.status(201).json({ success: true, message: 'Goal created successfully', goal });
+    } catch (error) {
+        console.error('Error creating goal:', error);
+        res.status(500).json({ success: false, message: 'Error creating goal' });
+    }
+});
+
+/**
+ * GET /api/patients/goals/all - Get all goals for current patient
+ */
+router.get('/goals/all', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const goals = await PatientGoal.find({ patientId: req.user.userId })
+            .sort({ targetDate: -1, createdAt: -1 });
+
+        res.status(200).json({ success: true, count: goals.length, goals });
+    } catch (error) {
+        console.error('Error fetching goals:', error);
+        res.status(500).json({ success: false, message: 'Error fetching goals' });
+    }
+});
+
+/**
+ * GET /api/patients/goals/today - Get today's goals for current patient
+ */
+router.get('/goals/today', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const goals = await PatientGoal.getTodaysGoals(req.user.userId);
+
+        res.status(200).json({ success: true, count: goals.length, goals });
+    } catch (error) {
+        console.error('Error fetching today\'s goals:', error);
+        res.status(500).json({ success: false, message: 'Error fetching today\'s goals' });
+    }
+});
+
+/**
+ * PUT /api/patients/goals/:goalId - Update a goal
+ */
+router.put('/goals/:goalId', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const goal = await PatientGoal.findById(req.params.goalId);
+
+        if (!goal) {
+            return res.status(404).json({ success: false, message: 'Goal not found' });
+        }
+
+        if (goal.patientId.toString() !== req.user.userId) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        const { title, description, targetDate, category, targetValue, currentValue, unit, frequency, reminderTime, notes } = req.body;
+
+        if (title) goal.title = title;
+        if (description !== undefined) goal.description = description;
+        if (targetDate) goal.targetDate = targetDate;
+        if (category) goal.category = category;
+        if (targetValue !== undefined) goal.targetValue = targetValue;
+        if (currentValue !== undefined) {
+            await goal.updateProgress(currentValue);
+            return res.status(200).json({ success: true, message: 'Goal progress updated', goal });
+        }
+        if (unit) goal.unit = unit;
+        if (frequency) goal.frequency = frequency;
+        if (reminderTime !== undefined) goal.reminderTime = reminderTime;
+        if (notes !== undefined) goal.notes = notes;
+
+        await goal.save();
+
+        res.status(200).json({ success: true, message: 'Goal updated successfully', goal });
+    } catch (error) {
+        console.error('Error updating goal:', error);
+        res.status(500).json({ success: false, message: 'Error updating goal' });
+    }
+});
+
+/**
+ * PUT /api/patients/goals/:goalId/complete - Mark goal as completed
+ */
+router.put('/goals/:goalId/complete', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const goal = await PatientGoal.findById(req.params.goalId);
+
+        if (!goal) {
+            return res.status(404).json({ success: false, message: 'Goal not found' });
+        }
+
+        if (goal.patientId.toString() !== req.user.userId) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        await goal.complete();
+
+        res.status(200).json({ success: true, message: 'Goal marked as completed', goal });
+    } catch (error) {
+        console.error('Error completing goal:', error);
+        res.status(500).json({ success: false, message: 'Error completing goal' });
+    }
+});
+
+/**
+ * DELETE /api/patients/goals/:goalId - Delete a goal
+ */
+router.delete('/goals/:goalId', authMiddleware, authorizeRoles('patient'), async (req, res) => {
+    try {
+        const goal = await PatientGoal.findById(req.params.goalId);
+
+        if (!goal) {
+            return res.status(404).json({ success: false, message: 'Goal not found' });
+        }
+
+        if (goal.patientId.toString() !== req.user.userId) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        await PatientGoal.findByIdAndDelete(req.params.goalId);
+
+        res.status(200).json({ success: true, message: 'Goal deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting goal:', error);
+        res.status(500).json({ success: false, message: 'Error deleting goal' });
     }
 });
 
